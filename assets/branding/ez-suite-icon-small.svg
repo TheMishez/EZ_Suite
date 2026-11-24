@@ -6,10 +6,6 @@
  <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#bg)"/>
  <rect x="17.5" y="17.5" width="477" height="477" rx="106.5" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="3"/>
  <circle cx="256" cy="256" r="200" fill="url(#glow)"/>
- <circle cx="256" cy="256" r="168" fill="none" stroke="#fdcc14" stroke-width="34" stroke-dasharray="214 50" stroke-dashoffset="132"/>
- <g display="none" stroke="#fdcc14" stroke-width="16" stroke-linecap="round">
-  <line x1="256" y1="58" x2="256" y2="112"/><line x1="256" y1="400" x2="256" y2="454"/>
- </g>
  <g transform="translate(36 177) scale(0.2353)" >
   <g transform="translate(-16 -191)"><polygon fill="#d6d6d6" points="207,191 1000,191 813,354 413,354 392,433 985,433 785,592 348,592 323,681 860,681 619,871 16,871"/><polygon fill="#fdcc14" points="1055,191 1886,191 1290,681 1763,681 1538,871 680,871 1352,354 868,354"/></g>
  </g>
