@@ -57,7 +57,7 @@
       const bar = document.createElement('header');
       bar.className = 'ez-bar';
       bar.setAttribute('data-tauri-drag-region', '');
-      bar.innerHTML = `<div class="ez-brand" data-tauri-drag-region>${LOGO}<span data-tauri-drag-region>EZ SUITE</span></div>${tabsHtml()}<div class="ez-flex" data-tauri-drag-region></div>${WIN_BTNS}`;
+      bar.innerHTML = `<div class="ez-brand" data-tauri-drag-region>${LOGO}<span data-tauri-drag-region>SUITE</span></div>${tabsHtml()}<div class="ez-flex" data-tauri-drag-region></div>${WIN_BTNS}`;
       document.body.prepend(bar);
       bindBar(bar);
     }
