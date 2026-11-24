@@ -1,8 +1,13 @@
 name: Build EZ Suite
 
-# - Every push to main (and pull requests): builds the installer; grab it from the run's Artifacts.
-# - Publishing a GitHub release tagged vX.Y.Z: builds and attaches the installer to the release.
-#   Installed copies of EZ Suite see it and offer the update in the app.
+# One backend, three apps: EZ Suite (soundboard + crosshair), EZ Reticle and EZ Soundboard.
+#
+# - Every push to main (and pull requests): builds all three installers; grab them from the run's Artifacts.
+# - Publishing a GitHub release tagged vX.Y.Z: builds and attaches all three installers to the release.
+#   Installed copies of each app see it and offer the update in the app.
+# - Moving users off the old Electron apps: if the EZ_BRIDGE_TOKEN secret is set (a fine-grained token
+#   with "Contents: read and write" on TheMishez/EZ_Retical and TheMishez/EZ_SoundBoard), the release
+#   is also published there with a latest.yml, so the old apps' updaters install the new versions.
 on:
   push:
     branches: [main]
@@ -16,7 +21,31 @@ permissions:
 
 jobs:
   windows:
+    name: ${{ matrix.name }}
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: suite
+            name: EZ Suite
+            features: ""
+            config: ""
+            mic: true
+          - app: reticle
+            name: EZ Reticle
+            features: flavor-reticle
+            config: src-tauri/tauri.reticle.conf.json
+            mic: false
+            asset: EZ-Reticle-Setup
+            old_repo: TheMishez/EZ_Retical
+          - app: soundboard
+            name: EZ Soundboard
+            features: flavor-soundboard
+            config: src-tauri/tauri.soundboard.conf.json
+            mic: true
+            asset: EZ-Soundboard-Setup
+            old_repo: TheMishez/EZ_SoundBoard
     steps:
       - uses: actions/checkout@v5
 
@@ -42,26 +71,58 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          key: ${{ matrix.app }}
 
       - name: Build mic plugin (C++)
+        if: matrix.mic
         run: |
           cmake -S native -B native/build -A x64
           cmake --build native/build --config Release
 
       - name: Pack Stream Deck plugin
+        if: matrix.mic
         run: node tools/pack-streamdeck.js
 
       - name: Install Tauri CLI
         run: npm install
 
-      - name: Build EZ Suite
-        run: npx tauri build
+      - name: Build ${{ matrix.name }}
+        shell: pwsh
+        run: |
+          $a = @('tauri', 'build')
+          if ('${{ matrix.config }}') { $a += @('--config', '${{ matrix.config }}') }
+          if ('${{ matrix.features }}') { $a += @('--features', '${{ matrix.features }}') }
+          npx @a
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # EZ Suite keeps Tauri's installer name (EZ Suite 2.0.x picks the first "-setup.exe" asset).
+      # The standalone apps get the old apps' naming plus a latest.yml for the old updaters.
+      - name: Name the installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out | Out-Null
+          $f = Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          $v = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          if ('${{ matrix.app }}' -eq 'suite') {
+            Copy-Item $f.FullName ("out/" + ($f.Name -replace ' ', '.'))
+          } else {
+            $name = "${{ matrix.asset }}-$v.exe"
+            $dst = "out/$name"
+            Copy-Item $f.FullName $dst
+            $sha = [System.Security.Cryptography.SHA512]::Create()
+            $b64 = [Convert]::ToBase64String($sha.ComputeHash([IO.File]::ReadAllBytes($dst)))
+            $size = (Get-Item $dst).Length
+            $date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            $yml = "version: $v`nfiles:`n  - url: $name`n    sha512: $b64`n    size: $size`npath: $name`nsha512: $b64`nreleaseDate: '$date'`n"
+            [IO.File]::WriteAllText("out/${{ matrix.app }}-latest.yml", $yml)
+          }
+          Get-ChildItem out
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: EZ-Suite-Setup
-          path: src-tauri/target/release/bundle/nsis/*.exe
+          name: ${{ matrix.name }} Setup
+          path: out/*
 
       - name: Attach installer to the release
         if: github.event_name == 'release'
@@ -70,5 +131,28 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          $f = Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          $f = Get-ChildItem out/*.exe | Select-Object -First 1
           gh release upload $env:TAG "$($f.FullName)" --clobber
+
+      - name: Publish to the old app's repo (moves Electron users over)
+        if: github.event_name == 'release' && matrix.old_repo
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.EZ_BRIDGE_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if (-not $env:GH_TOKEN) {
+            Write-Host "EZ_BRIDGE_TOKEN isn't set: skipping. Upload out/*.exe and latest.yml to ${{ matrix.old_repo }} by hand to move old users over."
+            exit 0
+          }
+          New-Item -ItemType Directory -Force bridge | Out-Null
+          Copy-Item "out/${{ matrix.app }}-latest.yml" bridge/latest.yml
+          $exe = (Get-ChildItem out/*.exe | Select-Object -First 1).FullName
+          $notes = "${{ matrix.name }} is now part of the EZ Suite family: rebuilt on a small Rust backend, far lighter on your PC. Your settings come with you. Source: https://github.com/${{ github.repository }}"
+          gh release view $env:TAG -R ${{ matrix.old_repo }} *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:TAG $exe bridge/latest.yml -R ${{ matrix.old_repo }} --clobber
+          } else {
+            gh release create $env:TAG $exe bridge/latest.yml -R ${{ matrix.old_repo }} --title "${{ matrix.name }} $($env:TAG.TrimStart('v'))" --notes $notes
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

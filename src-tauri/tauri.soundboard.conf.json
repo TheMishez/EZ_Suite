@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "EZ Soundboard",
+  "mainBinaryName": "ez-soundboard",
+  "identifier": "com.ezggco.soundboard",
+  "bundle": {
+    "shortDescription": "Soundboard that plays into your mic with almost no PC impact",
+    "icon": ["icons/soundboard/icon.png", "icons/soundboard/icon.ico"],
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/soundboard/icon.ico"
+      }
+    }
+  }
+}

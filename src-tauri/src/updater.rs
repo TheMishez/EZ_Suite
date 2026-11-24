@@ -86,7 +86,9 @@ pub fn reticle_view() -> Value {
 
 fn changed() {
     util::emit("update-state", state());
-    crate::crosshair::broadcast_state();
+    if crate::flavor::CROSSHAIR {
+        crate::crosshair::broadcast_state();
+    }
     crate::tray::refresh();
 }
 
@@ -118,7 +120,7 @@ pub fn check(manual: bool) -> Value {
     let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(12)).build();
     let res = agent
         .get(&format!("https://api.github.com/repos/{OWNER}/{REPO}/releases/latest"))
-        .set("User-Agent", &format!("EZ-Suite/{}", util::app_version()))
+        .set("User-Agent", &format!("{}/{}", crate::flavor::NAME.replace(' ', "-"), util::app_version()))
         .set("Accept", "application/vnd.github+json")
         .call();
     match res {
@@ -136,9 +138,9 @@ pub fn check(manual: bool) -> Value {
                     .as_array()
                     .and_then(|a| {
                         a.iter().find_map(|x| {
-                            let n = util::jstr(x, "name").to_lowercase();
+                            let n = util::jstr(x, "name");
                             let u = util::jstr(x, "browser_download_url");
-                            (n.ends_with("-setup.exe") && u.starts_with("https://github.com/")).then(|| u.to_string())
+                            (crate::flavor::is_my_installer(n) && u.starts_with("https://github.com/")).then(|| u.to_string())
                         })
                     })
                     .unwrap_or_default();
@@ -195,10 +197,10 @@ pub fn download() -> bool {
     std::thread::spawn(move || {
         let r = (|| -> Result<std::path::PathBuf, String> {
             let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(15)).build();
-            let resp = agent.get(&asset).set("User-Agent", "EZ-Suite").call().map_err(|e| e.to_string())?;
+            let resp = agent.get(&asset).set("User-Agent", &crate::flavor::NAME.replace(' ', "-")).call().map_err(|e| e.to_string())?;
             let total: u64 = resp.header("content-length").and_then(|v| v.parse().ok()).unwrap_or(0);
             let mut rd = resp.into_reader();
-            let path = std::env::temp_dir().join(format!("EZ-Suite-Setup-{}.exe", util::new_id()));
+            let path = std::env::temp_dir().join(format!("{}-Setup-{}.exe", crate::flavor::NAME.replace(' ', "-"), util::new_id()));
             let mut f = std::fs::File::create(&path).map_err(|e| e.to_string())?;
             let mut buf = vec![0u8; 64 * 1024];
             let mut got = 0u64;
@@ -249,9 +251,13 @@ pub fn install() -> bool {
     let Some(file) = file else { return false };
     let exe = std::env::current_exe().unwrap_or_default();
     let q = |p: &std::path::Path| format!("'{}'", p.to_string_lossy().replace('\'', "''"));
+    // The apps with the mic plugin install for all users (admin); EZ Reticle installs per user,
+    // so it must not ask for admin (a standard user would end up installing into the admin's profile).
+    let elevate = if crate::flavor::SOUND { " -Verb RunAs" } else { "" };
     let ps = format!(
-        "Start-Sleep -Milliseconds 800; $p = Start-Process -FilePath {} -ArgumentList '/S' -Verb RunAs -Wait -PassThru; Start-Process -FilePath {}",
+        "Start-Sleep -Milliseconds 800; $p = Start-Process -FilePath {} -ArgumentList '/S'{} -Wait -PassThru; Start-Process -FilePath {}",
         q(&file),
+        elevate,
         q(&exe)
     );
     let ok = util::hidden_command("powershell.exe").args(["-NoProfile", "-NonInteractive", "-WindowStyle", "Hidden", "-Command", &ps]).spawn().is_ok();

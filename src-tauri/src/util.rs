@@ -35,10 +35,10 @@ pub fn emit_to<S: Serialize + Clone>(label: &str, event: &str, payload: S) {
     }
 }
 
-/// %APPDATA%\EZ Suite
+/// %APPDATA%\EZ Suite (or the standalone app's folder, see flavor.rs)
 pub fn data_dir() -> PathBuf {
     let base = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
-    let d = base.join("EZ Suite");
+    let d = base.join(crate::flavor::DATA_DIR);
     let _ = std::fs::create_dir_all(&d);
     d
 }

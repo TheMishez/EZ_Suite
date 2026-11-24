@@ -19,6 +19,21 @@ Everything from both apps, in one window with **Soundboard** and **Crosshair** t
 
 Closing the window frees its memory. Hotkeys, sounds, push-to-talk, the Stream Deck and the crosshair keep running from the tray.
 
+## Standalone EZ Reticle and EZ Soundboard
+The same backend also builds the two apps on their own, for people who only want one of them:
+
+| App | What it has | Installs for |
+|---|---|---|
+| **EZ Suite** | soundboard + crosshair, with tabs | all users (mic plugin) |
+| **EZ Reticle** | crosshair only | just you (no admin needed) |
+| **EZ Soundboard** | soundboard only | all users (mic plugin) |
+
+All three come from one release: `EZ.Suite_X_x64-setup.exe`, `EZ-Reticle-Setup-X.exe` and `EZ-Soundboard-Setup-X.exe`. Each app updates itself from this repo's releases and picks its own installer. A standalone app never starts the part it doesn't have, so EZ Reticle runs no audio engine and EZ Soundboard draws no overlay. Which app a build is comes from a Cargo feature (`flavor-reticle` / `flavor-soundboard`, see `src-tauri/src/flavor.rs`) plus a config file (`src-tauri/tauri.reticle.conf.json` / `tauri.soundboard.conf.json`).
+
+- **Coming from the old Electron versions:** their in-app updater offers the new version. The installer removes the old app first (for EZ Soundboard without touching the mics you picked), and on first start the new app imports your sounds, boards, crosshairs and settings. For the old updaters to see it, the release also has to be in the old repos (`EZ_Retical`, `EZ_SoundBoard`). Set the `EZ_BRIDGE_TOKEN` secret and the workflow does that by itself.
+- **EZ Suite and a standalone app side by side:** they can both be installed, but only one can run each part at a time (two audio engines in one mic plugin, two crosshairs on screen). Starting the second one says so and exits. EZ Suite and EZ Soundboard share the mic plugin: uninstalling one hands it over to the other instead of switching your mics off.
+- **Data:** EZ Suite keeps its files in `%APPDATA%\EZ Suite`, the standalone apps in `%APPDATA%\EZGGco\EZ Reticle` and `%APPDATA%\EZGGco\EZ Soundboard`.
+
 ## Moving from the old apps
 1. **Uninstall the old EZ Soundboard and EZ Reticle first.** The old soundboard's uninstaller removes the mic plugin, so if it runs *after* EZ Suite is installed it would switch EZ Suite's mic plugin off too. (If that happens: Settings → Microphone → tick your mic → Apply.)
 2. Install EZ Suite. On first start it copies your sounds, boards and settings from EZ Soundboard and your crosshairs and settings from EZ Reticle. The old files are left untouched.
@@ -52,12 +67,14 @@ streamdeck/         the Stream Deck plugin (talks to 127.0.0.1:41720, unchanged)
 ## Building
 **Easiest:** push to GitHub. `.github/workflows/build.yml` builds the installer on GitHub's Windows machines; download it from the run's **Artifacts**.
 
-**To ship an update:** bump `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml`, then publish a GitHub release tagged `vX.Y.Z`. The workflow attaches the installer and installed copies offer the update.
+**To ship an update:** bump `version` in `src-tauri/tauri.conf.json` and `src-tauri/Cargo.toml`, then publish a GitHub release tagged `vX.Y.Z`. The workflow attaches all three installers and installed copies offer the update.
 
 **On your PC:** install Rust, Node.js 20+ and Visual Studio 2022 Build Tools (Desktop development with C++), then:
 ```
 npm install
 npm run build       # mic plugin, Stream Deck plugin, then the installer in src-tauri/target/release/bundle/nsis
+npx tauri build --config src-tauri/tauri.reticle.conf.json --features flavor-reticle         # EZ Reticle
+npx tauri build --config src-tauri/tauri.soundboard.conf.json --features flavor-soundboard   # EZ Soundboard
 npm run dev         # development (run `npm run native` once first)
 ```
 

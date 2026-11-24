@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "EZ Reticle",
+  "mainBinaryName": "ez-reticle",
+  "identifier": "com.ezggco.ezreticle",
+  "bundle": {
+    "shortDescription": "Crosshair overlay with almost no PC impact",
+    "icon": ["icons/reticle/icon.png", "icons/reticle/icon.ico"],
+    "resources": [],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "installerIcon": "icons/reticle/icon.ico"
+      }
+    }
+  }
+}

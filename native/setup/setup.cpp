@@ -5,6 +5,9 @@
 //   ezsb-mic-setup uninstall all|<guid>...       (admin)    restore mics exactly as they were
 //   ezsb-mic-setup apply --enable a,b --disable c (admin)   used by the app's Microphones tab
 //   ezsb-mic-setup restart                       (admin)    restart Windows Audio
+//   ezsb-mic-setup register                      (admin)    point the plugin at this copy's DLL, mics unchanged
+//                                                           (EZ Suite and EZ Soundboard share the plugin: when one
+//                                                           is uninstalled, the other one takes it over)
 // Flags: --no-restart, --unregister (with uninstall all), --efx (default) | --sfx | --legacy (effect slot)
 //
 // What "install" does (same idea as Soundpad / Equalizer APO):
@@ -592,6 +595,9 @@ int wmain(int argc, wchar_t** argv) {
     bool ok = true;
     if (cmd == L"restart") {
         ok = RestartAudio();
+    } else if (cmd == L"register") {
+        ok = RegisterPlugin();
+        if (restart) ok &= RestartAudio();
     } else if (cmd == L"install" || cmd == L"apply") {
         std::vector<std::wstring> on = resolve(cmd == L"install" ? targets : enable);
         std::vector<std::wstring> off = resolve(disable);
