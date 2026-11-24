@@ -1,16 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
  <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#23242a"/><stop offset="1" stop-color="#0b0b0e"/></linearGradient>
-  <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fdcc14" stop-opacity=".22"/><stop offset="1" stop-color="#fdcc14" stop-opacity="0"/></radialGradient>
+  <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fdcc14" stop-opacity=".2"/><stop offset="1" stop-color="#fdcc14" stop-opacity="0"/></radialGradient>
  </defs>
  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)"/>
  <rect x="17.5" y="17.5" width="477" height="477" rx="106.5" fill="none" stroke="#ffffff" stroke-opacity=".08" stroke-width="3"/>
  <circle cx="256" cy="256" r="200" fill="url(#glow)"/>
- <circle cx="256" cy="256" r="168" fill="none" stroke="#fdcc14" stroke-width="16" stroke-dasharray="214 50" stroke-dashoffset="132"/>
- <g stroke="#fdcc14" stroke-width="16" stroke-linecap="round">
-  <line x1="256" y1="58" x2="256" y2="112"/><line x1="256" y1="400" x2="256" y2="454"/>
+ <circle cx="256" cy="256" r="178" fill="none" stroke="#fdcc14" stroke-width="14" stroke-dasharray="230 49.6" stroke-dashoffset="140"/>
+ <g stroke="#fdcc14" stroke-width="14" stroke-linecap="round">
+  <line x1="256" y1="50" x2="256" y2="100"/><line x1="256" y1="412" x2="256" y2="462"/>
  </g>
- <g transform="translate(66 189) scale(0.2032)" >
-  <g transform="translate(-16 -191)"><polygon fill="#c4c4c4" points="207,191 1000,191 813,354 413,354 392,433 985,433 785,592 348,592 323,681 860,681 619,871 16,871"/><polygon fill="#fdcc14" points="1055,191 1886,191 1290,681 1763,681 1538,871 680,871 1352,354 868,354"/></g>
- </g>
+ <g transform="translate(86 168) scale(0.1818)"><g transform="translate(-16 -191)"><polygon fill="#c4c4c4" points="207,191 1000,191 813,354 413,354 392,433 985,433 785,592 348,592 323,681 860,681 619,871 16,871"/><polygon fill="#fdcc14" points="1055,191 1886,191 1290,681 1763,681 1538,871 680,871 1352,354 868,354"/></g></g>
+ <text x="256" y="352" text-anchor="middle" transform="translate(256 330) skewX(-12) translate(-256 -330)" font-family="Archivo Black" font-size="62" letter-spacing="7" fill="#f2f2f2">SUITE</text>
 </svg>
