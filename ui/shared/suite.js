@@ -1,11 +1,17 @@
 'use strict';
 /* EZ Suite shell shared by both pages: the Tauri bridge, the app bar (Soundboard | Crosshair tabs +
-   window buttons) and telling the backend whether the page is on screen. */
+   window buttons) and telling the backend whether the page is on screen.
+   The standalone EZ Reticle / EZ Soundboard use the same pages: no tabs, their own name. */
 (() => {
   const T = window.__TAURI__;
   const invoke = (cmd, args, opts) => T.core.invoke(cmd, args, opts);
   const listen = (ev, cb) => T.event.listen(ev, (e) => cb(e.payload));
   const page = document.documentElement.dataset.page || 'soundboard';
+  // Set by the backend: 'suite', 'reticle' or 'soundboard'.
+  const flavor = window.__EZ_FLAVOR || 'suite';
+  const suite = flavor === 'suite';
+  const WORD = { suite: 'SUITE', reticle: 'RETICLE', soundboard: 'SOUNDBOARD' }[flavor] || 'SUITE';
+  const APP_NAME = { suite: 'EZ Suite', reticle: 'EZ Reticle', soundboard: 'EZ Soundboard' }[flavor] || 'EZ Suite';
 
   const LOGO = '<svg class="ez-mark" viewBox="16 191 1870 680"><polygon fill="#adadad" points="207,191 1000,191 813,354 413,354 392,433 985,433 785,592 348,592 323,681 860,681 619,871 16,871"/><polygon fill="#fdcc14" points="1055,191 1886,191 1290,681 1763,681 1538,871 680,871 1352,354 868,354"/></svg>';
   const TABS = [
@@ -20,6 +26,7 @@
     </div>`;
 
   function tabsHtml() {
+    if (!suite) return '<nav class="ez-tabs"></nav>';
     return `<nav class="ez-tabs">${TABS.map(([id, label, ic]) =>
       `<button class="ez-tab ${id === page ? 'on' : ''}" data-ezpage="${id}"><svg viewBox="0 0 24 24">${ic}</svg>${label}</button>`).join('')}</nav>`;
   }
@@ -42,13 +49,16 @@
   }
 
   function mount() {
-    document.body.classList.add('ez-suite', 'ez-page-' + page);
+    document.body.classList.add('ez-suite', 'ez-page-' + page, 'ez-flavor-' + flavor);
+    document.title = suite ? document.title : APP_NAME;
     const existing = document.getElementById('titlebar');
     if (existing) {
       // The soundboard already has a title bar: add the tabs to it.
       existing.setAttribute('data-tauri-drag-region', '');
       existing.querySelectorAll('.brand, .flex').forEach((el) => el.setAttribute('data-tauri-drag-region', ''));
       const brand = existing.querySelector('.brand');
+      const word = brand.querySelector('span');
+      if (word) word.textContent = WORD;
       const nav = document.createElement('div');
       nav.innerHTML = tabsHtml();
       brand.after(nav.firstElementChild);
@@ -57,7 +67,7 @@
       const bar = document.createElement('header');
       bar.className = 'ez-bar';
       bar.setAttribute('data-tauri-drag-region', '');
-      bar.innerHTML = `<div class="ez-brand" data-tauri-drag-region>${LOGO}<span data-tauri-drag-region>SUITE</span></div>${tabsHtml()}<div class="ez-flex" data-tauri-drag-region></div>${WIN_BTNS}`;
+      bar.innerHTML = `<div class="ez-brand" data-tauri-drag-region>${LOGO}<span data-tauri-drag-region>${WORD}</span></div>${tabsHtml()}<div class="ez-flex" data-tauri-drag-region></div>${WIN_BTNS}`;
       document.body.prepend(bar);
       bindBar(bar);
     }
@@ -76,7 +86,7 @@
   document.addEventListener('visibilitychange', reportVisibility);
 
   window.ezGoto = goto;
-  window.EZ = { invoke, listen, page };
+  window.EZ = { invoke, listen, page, flavor, appName: APP_NAME };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); reportVisibility(); });
   else { mount(); reportVisibility(); }
 })();

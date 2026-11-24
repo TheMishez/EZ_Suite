@@ -20,7 +20,7 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 
 const MIN_OVERLAY: f64 = 48.0;
 const MAX_OVERLAY: f64 = 1000.0;
-const OWN_PROCS: &[&str] = &["ez-suite", "ez suite", "ezsuite", "msedgewebview2", "ez reticle", "ez-reticle", "ez soundboard"];
+const OWN_PROCS: &[&str] = &["ez-suite", "ez suite", "ezsuite", "msedgewebview2", "ez reticle", "ez-reticle", "ez soundboard", "ez-soundboard"];
 
 #[derive(Clone, Copy, Default, PartialEq)]
 struct Meta {
@@ -60,6 +60,11 @@ struct Xh {
 
 static XH: OnceLock<Mutex<Xh>> = OnceLock::new();
 static KICK: OnceLock<Mutex<mpsc::Sender<()>>> = OnceLock::new();
+
+/// False in EZ Soundboard, which never starts the crosshair.
+pub fn ready() -> bool {
+    XH.get().is_some()
+}
 
 fn xh() -> parking_lot::MutexGuard<'static, Xh> {
     XH.get().expect("crosshair not initialised").lock()
@@ -191,6 +196,9 @@ fn normalize(raw: &Value) -> Value {
     })
 }
 
+/// Set when this start imported the old Electron EZ Reticle's settings.
+static IMPORTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 fn load_config() -> Value {
     let p = cfg_path();
     if let Some(v) = util::read_json(&p) {
@@ -209,6 +217,7 @@ fn load_config() -> Value {
                 }
                 let n = normalize(&v);
                 let _ = util::write_json_atomic(&p, &n, true);
+                IMPORTED.store(true, std::sync::atomic::Ordering::Relaxed);
                 return n;
             }
         }
@@ -276,6 +285,9 @@ fn public_state(x: &Xh) -> Value {
 }
 
 pub fn broadcast_state() {
+    if !ready() {
+        return;
+    }
     let s = public_state(&xh());
     util::emit("xh-state", s);
 }
@@ -315,20 +327,34 @@ pub fn init() {
     register_hotkeys();
     sync_watcher();
     kick();
+    // The old app started with Windows through its own login item, which its uninstaller leaves
+    // pointing at a deleted exe: carry the setting over to this app's own entry.
+    if IMPORTED.load(std::sync::atomic::Ordering::Relaxed) && jbool(&xh().cfg, "autoStart", false) {
+        crate::set_autostart(true);
+    }
 }
 
 pub fn shutdown() {
+    if !ready() {
+        return;
+    }
     let cfg = xh().cfg.clone();
     save_now(&cfg);
     still::destroy();
 }
 
 pub fn start_hidden() -> bool {
+    if !ready() {
+        return false;
+    }
     jbool(&xh().cfg, "startHidden", false)
 }
 
 /// The main window tells us whether the crosshair designer is on screen.
 pub fn set_editor_open(open: bool) {
+    if !ready() {
+        return;
+    }
     let changed = {
         let mut x = xh();
         let c = x.editor_open != open;
@@ -752,11 +778,17 @@ fn set_overlay_visible(v: bool) {
 }
 
 pub fn toggle_overlay() {
+    if !ready() {
+        return;
+    }
     let v = jbool(&xh().cfg, "overlayVisible", true);
     set_overlay_visible(!v);
 }
 
 pub fn overlay_visible() -> bool {
+    if !ready() {
+        return false;
+    }
     jbool(&xh().cfg, "overlayVisible", true)
 }
 
@@ -790,6 +822,9 @@ fn register_hotkeys() {
 }
 
 pub fn on_hotkey(action: &str) {
+    if !ready() {
+        return;
+    }
     match action {
         "toggle" => toggle_overlay(),
         "next" => cycle_profile(1),
@@ -826,6 +861,9 @@ pub fn animation_listening() -> bool {
 }
 
 pub fn on_input(code: &'static str, down: bool) {
+    if !ready() {
+        return;
+    }
     if !xh().meta.animated {
         return;
     }
@@ -871,6 +909,9 @@ fn sync_watcher() {
 }
 
 pub fn on_foreground(name: &str, x0: i32, y0: i32, w: i32, h: i32) {
+    if !ready() {
+        return;
+    }
     let name = exe_key(name);
     let own = std::env::current_exe().ok().and_then(|p| p.file_stem().map(|s| s.to_string_lossy().to_lowercase())).unwrap_or_default();
     if name.is_empty() || name == own || OWN_PROCS.contains(&name.as_str()) {
@@ -1143,6 +1184,10 @@ pub fn xh_set_hotkey(accel: String, which: Option<String>) -> Value {
 
 #[tauri::command]
 pub fn xh_pause_hotkey(pause: bool) -> bool {
+    // The soundboard page calls this too; EZ Soundboard has no crosshair.
+    if !ready() {
+        return false;
+    }
     xh().hotkeys_paused = pause;
     input::suspend("xh", pause);
     true

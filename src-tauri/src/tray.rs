@@ -1,4 +1,4 @@
-//! The tray icon: EZ Suite keeps running here with the window closed.
+//! The tray icon: the app keeps running here with the window closed.
 use crate::util;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -8,7 +8,7 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let up = crate::updater::state();
     let phase = util::jstr(&up, "phase").to_string();
     let ver = util::jstr(&up, "version").to_string();
-    let open = MenuItem::with_id(app, "open", "Open EZ Suite", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", format!("Open {}", crate::flavor::NAME), true, None::<&str>)?;
     let sb = MenuItem::with_id(app, "soundboard", "Soundboard", true, None::<&str>)?;
     let xh = MenuItem::with_id(app, "crosshair", "Crosshair designer", true, None::<&str>)?;
     let toggle =
@@ -25,13 +25,29 @@ fn build_menu(app: &AppHandle) -> tauri::Result<Menu<Wry>> {
     let s1 = PredefinedMenuItem::separator(app)?;
     let s2 = PredefinedMenuItem::separator(app)?;
     let s3 = PredefinedMenuItem::separator(app)?;
-    Menu::with_items(app, &[&open, &sb, &xh, &s1, &toggle, &stop, &s2, &update, &s3, &quit])
+    // A standalone app has one page, so only EZ Suite lists both, and each app only gets the
+    // actions for the part it has.
+    let suite = crate::flavor::SOUND && crate::flavor::CROSSHAIR;
+    let mut items: Vec<&dyn tauri::menu::IsMenuItem<Wry>> = vec![&open];
+    if suite {
+        items.push(&sb);
+        items.push(&xh);
+    }
+    items.push(&s1);
+    if crate::flavor::CROSSHAIR {
+        items.push(&toggle);
+    }
+    if crate::flavor::SOUND {
+        items.push(&stop);
+    }
+    items.extend([&s2 as &dyn tauri::menu::IsMenuItem<Wry>, &update, &s3, &quit]);
+    Menu::with_items(app, &items)
 }
 
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
     let menu = build_menu(app)?;
-    let mut b = TrayIconBuilder::with_id("main").tooltip("EZ Suite").menu(&menu).menu_on_left_click(false);
-    if let Ok(i) = tauri::image::Image::from_bytes(include_bytes!("../icons/tray.png")) {
+    let mut b = TrayIconBuilder::with_id("main").tooltip(crate::flavor::NAME).menu(&menu).menu_on_left_click(false);
+    if let Ok(i) = tauri::image::Image::from_bytes(crate::flavor::TRAY_PNG) {
         b = b.icon(i);
     }
     b.on_menu_event(|app, ev| match ev.id().as_ref() {

@@ -11,6 +11,11 @@ rust-version = "1.77"
 name = "ez_suite_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# Default build: EZ Suite. These build the standalone apps from the same code (see src/flavor.rs).
+flavor-reticle = []
+flavor-soundboard = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 

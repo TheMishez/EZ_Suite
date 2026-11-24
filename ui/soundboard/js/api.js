@@ -212,7 +212,7 @@
 
     setHotkeys: (bindings) => invoke('sb_set_hotkeys', { bindings }),
     hotkeyBackend: async () => 'native',
-    suspendHotkeys: (on2) => { invoke('sb_suspend_hotkeys', { on: !!on2 }).catch(() => {}); invoke('xh_pause_hotkey', { pause: !!on2 }).catch(() => {}); },
+    suspendHotkeys: (on2) => { invoke('sb_suspend_hotkeys', { on: !!on2 }).catch(() => {}); if ((window.__EZ_FLAVOR || 'suite') === 'suite') invoke('xh_pause_hotkey', { pause: !!on2 }).catch(() => {}); },
     onHotkey: () => {},
 
     apo: {

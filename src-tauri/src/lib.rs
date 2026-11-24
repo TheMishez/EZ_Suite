@@ -1,9 +1,11 @@
 //! EZ Suite: EZ Soundboard + EZ Reticle in one app, with one small Rust backend.
+//! The same backend also builds the standalone EZ Reticle and EZ Soundboard (see flavor.rs).
 //!
 //! One process, one tray icon, one native input thread, one audio engine. The window (a
 //! WebView2 page) only exists while it's open: close it and its memory goes back to Windows,
 //! while hotkeys, sounds, push-to-talk, the Stream Deck server and the crosshair keep running.
 mod crosshair;
+mod flavor;
 mod input;
 mod keys;
 mod perf;
@@ -17,7 +19,25 @@ use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 const PAGES: &[(&str, &str)] = &[("soundboard", "soundboard/index.html"), ("crosshair", "crosshair/editor.html")];
 
+/// The pages this app has (a standalone app has one).
+fn has_page(page: &str) -> bool {
+    match page {
+        "soundboard" => flavor::SOUND,
+        "crosshair" => flavor::CROSSHAIR,
+        _ => false,
+    }
+}
+
+fn home_page() -> &'static str {
+    if flavor::SOUND {
+        "soundboard"
+    } else {
+        "crosshair"
+    }
+}
+
 fn page_path(page: &str) -> &'static str {
+    let page = if has_page(page) { page } else { home_page() };
     PAGES.iter().find(|(p, _)| *p == page).map(|(_, f)| *f).unwrap_or(PAGES[0].1)
 }
 
@@ -26,7 +46,7 @@ fn suite_file() -> std::path::PathBuf {
 }
 
 fn last_page() -> String {
-    util::read_json(&suite_file()).map(|v| util::jstr(&v, "page").to_string()).filter(|p| !p.is_empty()).unwrap_or_else(|| "soundboard".into())
+    util::read_json(&suite_file()).map(|v| util::jstr(&v, "page").to_string()).filter(|p| has_page(p)).unwrap_or_else(|| home_page().into())
 }
 
 fn remember_page(page: &str) {
@@ -65,7 +85,9 @@ pub fn show_main(page: Option<&str>) {
         let p = page.unwrap_or_else(last_page);
         remember_page(&p);
         let built = WebviewWindowBuilder::new(&app, "main", WebviewUrl::App(page_path(&p).into()))
-            .title("EZ Suite")
+            .title(flavor::NAME)
+            // The app bar (ui/shared/suite.js) shows tabs in EZ Suite and the app's name otherwise.
+            .initialization_script(&format!("window.__EZ_FLAVOR={};", json!(flavor::ID)))
             .inner_size(1360.0, 860.0)
             .min_inner_size(980.0, 640.0)
             .decorations(false)
@@ -106,7 +128,9 @@ static SHUT: std::sync::Once = std::sync::Once::new();
 fn shutdown() {
     SHUT.call_once(|| {
         crosshair::shutdown();
-        sound::shutdown();
+        if flavor::SOUND {
+            sound::shutdown();
+        }
     });
 }
 
@@ -123,23 +147,28 @@ fn sync_editor() {
 /// The page reports where it is and whether it's on screen.
 #[tauri::command]
 fn app_ui_state(page: String, visible: bool) {
-    if PAGES.iter().any(|(p, _)| *p == page) {
+    if has_page(&page) {
         remember_page(&page);
     }
     *PAGE_STATE.lock() = (page.clone(), visible);
     sync_editor();
-    if page == "soundboard" {
-        sound::engine::set_ui_visible(visible);
-    } else {
-        sound::ui_detached();
+    if flavor::SOUND {
+        if page == "soundboard" {
+            sound::engine::set_ui_visible(visible);
+        } else {
+            sound::ui_detached();
+        }
     }
     perf::refresh();
 }
 
 #[tauri::command]
 fn app_goto(window: tauri::WebviewWindow, page: String) {
+    if !has_page(&page) {
+        return;
+    }
     remember_page(&page);
-    if page != "soundboard" {
+    if flavor::SOUND && page != "soundboard" {
         sound::ui_detached();
     }
     let url = format!("/{}", page_path(&page));
@@ -314,9 +343,18 @@ pub fn run() {
         .setup(move |app| {
             util::set_app(app.handle().clone());
             std::panic::set_hook(Box::new(|info| util::log(format!("panic: {info}"))));
+            // EZ Suite and a standalone app can't both run the same part.
+            if let Err(part) = flavor::claim_parts() {
+                flavor::explain_conflict(&part);
+                std::process::exit(0);
+            }
             input::start();
-            crosshair::init();
-            sound::init();
+            if flavor::CROSSHAIR {
+                crosshair::init();
+            }
+            if flavor::SOUND {
+                sound::init();
+            }
             updater::init();
             if let Err(e) = tray::create(app.handle()) {
                 util::log(format!("tray failed: {e}"));
@@ -342,7 +380,9 @@ pub fn run() {
                 WindowEvent::Destroyed => {
                     PAGE_STATE.lock().1 = false;
                     crosshair::set_editor_open(false);
-                    sound::ui_detached();
+                    if flavor::SOUND {
+                        sound::ui_detached();
+                    }
                     perf::refresh();
                 }
                 WindowEvent::Focused(_) | WindowEvent::Resized(_) => {
@@ -353,7 +393,7 @@ pub fn run() {
             }
         })
         .build(tauri::generate_context!())
-        .expect("error while building EZ Suite");
+        .expect("error while building the app");
 
     app.run(|_app, event| match event {
         RunEvent::ExitRequested { api, code, .. } => {
