@@ -1,7 +1,7 @@
 {
   "name": "ez-suite",
   "private": true,
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "EZ Soundboard + EZ Reticle in one lightweight app (Tauri + Rust)",
   "author": "EZGGco",
   "license": "MIT",

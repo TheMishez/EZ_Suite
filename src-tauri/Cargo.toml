@@ -1,6 +1,6 @@
 [package]
 name = "ez-suite"
-version = "2.0.1"
+version = "2.0.2"
 description = "EZ Suite: EZ Soundboard + EZ Reticle in one lightweight app"
 authors = ["EZGGco"]
 license = "MIT"
