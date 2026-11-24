@@ -16,7 +16,7 @@
 }
 .ez-brand { display: flex; align-items: center; gap: 9px; color: #ffd21f; font: 800 13px/1 "Segoe UI", system-ui, sans-serif; letter-spacing: 1.4px; }
 .ez-brand span { color: #eee; }
-.ez-mark { width: 30px; height: 17px; }
+.ez-mark { width: 44px; height: 16px; flex: none; }
 .ez-flex { flex: 1; align-self: stretch; }
 .ez-win { display: flex; align-self: stretch; }
 .ez-win button { width: 46px; border: 0; background: transparent; color: #aaa; cursor: pointer; }

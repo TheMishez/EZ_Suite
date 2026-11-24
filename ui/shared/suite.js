@@ -7,7 +7,7 @@
   const listen = (ev, cb) => T.event.listen(ev, (e) => cb(e.payload));
   const page = document.documentElement.dataset.page || 'soundboard';
 
-  const LOGO = '<svg class="ez-mark" viewBox="24 58 222 124"><g fill="currentColor" transform="translate(120 120) skewX(-11) translate(-120 -120)"><rect x="40" y="65" width="22" height="110"/><rect x="40" y="65" width="70" height="22"/><rect x="40" y="109" width="54" height="22"/><rect x="40" y="153" width="70" height="22"/><rect x="122" y="65" width="78" height="22"/><rect x="122" y="153" width="78" height="22"/><polyline points="192,87 170,104 181,113 151,131 162,140 132,153" fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="miter" stroke-miterlimit="10"/></g></svg>';
+  const LOGO = '<svg class="ez-mark" viewBox="16 191 1870 680"><polygon fill="#adadad" points="207,191 1000,191 813,354 413,354 392,433 985,433 785,592 348,592 323,681 860,681 619,871 16,871"/><polygon fill="#fdcc14" points="1055,191 1886,191 1290,681 1763,681 1538,871 680,871 1352,354 868,354"/></svg>';
   const TABS = [
     ['soundboard', 'Soundboard', '<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 7v10"/>'],
     ['crosshair', 'Crosshair', '<circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/>']
