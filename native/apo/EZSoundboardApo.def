@@ -1,0 +1,4 @@
+LIBRARY EZSoundboardApo
+EXPORTS
+    DllGetClassObject PRIVATE
+    DllCanUnloadNow PRIVATE

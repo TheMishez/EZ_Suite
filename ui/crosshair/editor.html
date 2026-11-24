@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en" data-page="crosshair">
+<head>
+  <meta charset="utf-8">
+  <title>EZ Suite · Crosshair</title>
+  <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="../shared/suite.css">
+</head>
+<body>
+  <aside class="side">
+    <div class="brand"><img src="logo-64.png" alt="" class="logo"><span>EZ Reticle</span></div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+      <button class="tab-btn" data-tab="crosshair"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg>Designer</button>
+      <button class="tab-btn" data-tab="pros"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.2 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/></svg>Pro Crosshairs</button>
+      <button class="tab-btn" data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5h0a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+    </nav>
+    <button id="updateLine" class="update-line" type="button" hidden title="Open the download page"></button>
+    <button id="pill" class="pill" title="Toggle the overlay"></button>
+  </aside>
+
+  <main>
+        <!-- ============ HOME ============ -->
+    <section id="tab-home" class="tab active">
+      <div class="card status">
+        <div>
+          <div class="eyebrow"><span id="homeDot" class="dot"></span><span id="homeState">READY</span></div>
+          <h2 id="homeTitle">Ready to play</h2>
+          <div id="homeSub" class="muted"></div>
+        </div>
+        <button id="homeToggle" class="primary big">Start overlay</button>
+      </div>
+
+      <div class="card">
+        <h3>Crosshair</h3>
+        <div class="home-cross">
+          <div class="home-now">
+            <div class="home-prev"><canvas id="homePreview"></canvas></div>
+            <div id="homeName" class="home-name">My crosshair</div>
+            <button id="homeEdit" class="wide">Edit in Designer</button>
+          </div>
+          <div class="home-switch">
+            <div class="eyebrow">MY CROSSHAIRS <span class="muted">Click to equip. It goes live instantly.</span></div>
+            <div id="homeGrid" class="preset-grid"></div>
+            <div class="eyebrow">STARTER PRESETS</div>
+            <div id="presetGrid" class="preset-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Display mode</h3>
+        <div class="mode-grid">
+          <button type="button" class="mode-card" data-mode="fullscreen">
+            <strong>Fullscreen games</strong>
+            <span class="muted small">Keeps the crosshair on top much more aggressively.</span>
+            <ul>
+              <li class="ok">Re-asserts &ldquo;always on top&rdquo; twice a second</li>
+              <li class="ok">Works with most games that use fullscreen optimizations</li>
+              <li class="no">True exclusive fullscreen can still hide it</li>
+            </ul>
+          </button>
+          <button type="button" class="mode-card" data-mode="borderless">
+            <strong>Windowed or borderless</strong>
+            <span class="muted small">The simple overlay. Nothing extra running.</span>
+            <ul>
+              <li class="ok">Zero setup, lowest overhead</li>
+              <li class="ok">Always shows over borderless and windowed games</li>
+              <li class="no">Won&rsquo;t show in exclusive-fullscreen games</li>
+            </ul>
+          </button>
+        </div>
+        <p class="muted small">If the crosshair disappears in a game, set that game&rsquo;s video mode to <b>Fullscreen Windowed</b> (borderless). That works in either mode.</p>
+      </div>
+
+      <div class="home-two">
+          <div class="card">
+            <div class="card-head">
+              <h3>Triggers</h3>
+              <span class="btns">
+                <button id="trigReset" hidden>Reset</button>
+                <button id="trigCustomize">Customize</button>
+              </span>
+            </div>
+            <p class="muted small" id="trigHint">Inputs that drive your crosshair animations. Press and hold an action name to preview it.</p>
+            <div id="triggerList" class="triggers"></div>
+          </div>
+
+        <div class="card">
+          <h3>Share</h3>
+          <div class="stack">
+            <button id="exportBtn">Copy my crosshair code</button>
+            <textarea id="importIn" rows="2" placeholder="Paste a crosshair code (XH1:...)"></textarea>
+            <div class="btns">
+              <button id="importBtn">Import</button>
+              <button id="pasteBtn">Paste from clipboard</button>
+              <button id="imgImportBtn" title="Use a PNG crosshair from another app (Crosshair X, EZ-Crosshair, a download) as a new crosshair">Import image…</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DESIGNER ============ -->
+    <section id="tab-crosshair" class="tab">
+      <div id="editBar" class="editbar" hidden>
+        <span id="editBarText"></span>
+        <button id="editSaveBtn" class="primary"></button>
+        <button id="editCancelBtn">Cancel</button>
+      </div>
+      <div class="dz">
+        <!-- top bar -->
+        <header class="dz-top">
+          <div class="dz-namewrap">
+            <input id="profileName" class="dz-name" type="text" maxlength="40" placeholder="Untitled crosshair" spellcheck="false" title="Crosshair name (used when you save)">
+            <button id="savedBtn" class="dz-ib" type="button" title="Saved crosshairs"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+            <div id="savedMenu" class="dz-pop" hidden>
+              <div class="dz-pop-h">Saved crosshairs</div>
+              <div id="profileList" class="plist"></div>
+            </div>
+          </div>
+          <button id="hotkeyChip" class="dz-chip" type="button" title="Hotkey that equips this saved crosshair. Right-click to clear.">HOTKEY<span id="hotkeyChipVal">Unbound</span></button>
+          <span id="savedState" class="dz-saved"><i></i><b>Saved</b></span>
+          <div class="state-bar">
+            <label for="stateSel">Editing</label>
+            <select id="stateSel"></select>
+            <button id="stateDel" type="button" class="dz-ib" title="Remove this state" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </div>
+          <p id="stateHint" hidden></p>
+          <span class="dz-sp"></span>
+          <button id="newBtn" class="dz-ib" type="button" title="New crosshair"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button id="undoBtn" class="dz-ib" type="button" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+          <button id="redoBtn" class="dz-ib" type="button" title="Redo (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+          <span class="dz-vs"></span>
+          <div class="dz-sharewrap">
+            <button id="shareBtn" class="dz-btn" type="button"><svg viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13"/></svg><span>Share</span></button>
+            <div id="shareMenu" class="dz-pop right" hidden>
+              <button type="button" data-share="xh"><b>Copy share code</b><span>Any EZ Reticle crosshair, all layers</span></button>
+              <button type="button" data-share="code"><b>Copy CS2 code</b><span>Single plain cross only</span></button>
+              <button type="button" data-share="cmd"><b>Copy console commands</b><span>Single plain cross only</span></button>
+            </div>
+          </div>
+          <button id="saveProfileBtn" class="dz-btn" type="button" title="Save to your crosshairs (Ctrl+S)"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zM8 3v5h7M8 14h8v7H8z"/></svg><span>Save</span></button>
+          <button id="applyBtn" class="dz-btn y" type="button" title="Show this crosshair in game"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg><span>Apply</span></button>
+        </header>
+
+        <div class="dz-work">
+          <!-- layers -->
+          <aside class="dz-panel dz-layers">
+            <div class="dz-ph">LAYERS <span id="layerCount" class="dz-badge">1</span>
+              <span class="dz-ptools">
+                <button id="copyStyleBtn" class="dz-ib sm" type="button" title="Copy style (color, outline, effects)"><svg viewBox="0 0 24 24"><path d="M8 8h12v12H8zM4 16V4h12"/></svg></button>
+                <button id="pasteStyleBtn" class="dz-ib sm" type="button" title="Paste style onto selected layers" disabled><svg viewBox="0 0 24 24"><path d="M9 3h6v4H9zM6 5H5v16h14V5h-1"/></svg></button>
+                <button id="mirrorHBtn" class="dz-ib sm" type="button" title="Duplicate mirrored left/right"><svg viewBox="0 0 24 24"><path d="M12 3v18M8 7l-5 5 5 5M16 7l5 5-5 5"/></svg></button>
+                <button id="mirrorVBtn" class="dz-ib sm" type="button" title="Duplicate mirrored up/down"><svg viewBox="0 0 24 24"><path d="M3 12h18M7 8l5-5 5 5M7 16l5 5 5-5"/></svg></button>
+              </span>
+            </div>
+            <div id="layerList" class="layers"></div>
+            <div class="add-wrap">
+              <button id="addLayerBtn" class="dz-add" type="button">+ Add layer</button>
+              <div id="addMenu" class="add-menu" hidden>
+                <button type="button" data-kind="shape"><b>Shape</b><span>Crosshairs, rings, arrows and more</span></button>
+                <button type="button" data-kind="image"><b>Image</b><span>Upload a PNG, JPG, WebP or GIF</span></button>
+                <button type="button" data-kind="draw"><b>Draw</b><span>Sketch your own crosshair</span></button>
+                <button type="button" data-kind="text"><b>Text</b><span>Letters, numbers or symbols</span></button>
+              </div>
+            </div>
+            <input type="file" id="imgFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
+          </aside>
+
+          <!-- canvas -->
+          <section class="dz-panel dz-canvas">
+            <div class="dz-ctool">
+              <button id="gridBtn" class="dz-tg on" type="button" title="Show grid (G)">GRID</button>
+              <button id="snapBtn" class="dz-tg on" type="button" title="Snap to whole pixels and the center (hold Alt to move freely)">SNAP</button>
+              <span id="drawHintTop" class="dz-drawhint" hidden>Drawing: drag on the canvas</span>
+              <span class="dz-zoom">
+                <button id="zoomOut" class="dz-ib sm" type="button" title="Zoom out">&minus;</button>
+                <span id="zoomLabel">100%</span>
+                <button id="zoomIn" class="dz-ib sm" type="button" title="Zoom in">+</button>
+                <button id="zoomFit" class="dz-tg" type="button" title="Fit the crosshair (F)">FIT</button>
+              </span>
+            </div>
+            <div id="stage" class="dz-stage grid">
+              <div class="dz-axis"></div>
+              <canvas id="previewCanvas"></canvas>
+              <div id="selLayer" class="dz-sel"></div>
+              <div id="realPrev" class="dz-real">
+                <div class="dz-real-h"><em>1:1</em> IN-GAME PREVIEW<span class="dz-sp"></span>
+                  <button id="bgImgBtn" class="dz-ib xs" type="button" title="Use your own game screenshot"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 14l3-3 5 5M14 12l2-2 4 4"/></svg></button>
+                  <button id="realToggle" class="dz-ib xs" type="button" title="Collapse"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+                </div>
+                <div id="previewWrap" class="dz-scene bg-cs2">
+                  <canvas id="realCanvas"></canvas>
+                  <button id="bgPrev" class="dz-arr l" type="button" title="Previous background">&lsaquo;</button>
+                  <button id="bgNext" class="dz-arr r" type="button" title="Next background">&rsaquo;</button>
+                  <span id="bgName" class="dz-bgname">CS2</span>
+                </div>
+                <input type="file" id="bgFile" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <!-- animation strip -->
+            <div id="animDock" class="dz-anim">
+              <div class="dz-atabs">
+                <button id="animOpenBtn" class="dz-animbtn" type="button">&#10022; Animate this layer</button>
+                <button class="dz-atab" type="button" data-atab="anims">&#10022; Layer animations</button>
+                <button class="dz-atab" type="button" data-atab="dyn">Dynamic spread</button>
+                <button class="dz-atab" type="button" data-atab="rules">Color rules</button>
+                <span class="dz-sp"></span>
+                <span class="dz-hint">Click empty canvas = <kbd>Shoot</kbd> &middot; right-click = <kbd>Aim</kbd></span>
+                <button id="animCollapse" class="dz-ib sm" type="button" title="Open / close"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+              </div>
+              <div class="dz-abody">
+                <div class="dz-apane" data-apane="anims"><div id="animCards" class="dz-acards"></div></div>
+                <div class="dz-apane" data-apane="dyn" id="dynCard">
+                  <div class="dz-dynhead">
+                    <label class="switch-line"><input type="checkbox" id="dynOn"> <span>Dynamic spread for the whole crosshair</span></label>
+                    <div id="dynTest" class="dyn-test"></div>
+                  </div>
+                  <div id="dynBody" class="dyn-body"></div>
+                </div>
+                <div class="dz-apane" data-apane="rules">
+                  <p class="muted small">Blend every layer toward a color while an action is active (for example red while reloading).</p>
+                  <div id="ruleList" class="rule-list"></div>
+                  <button id="addRuleBtn" type="button">+ Add color rule</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- inspector -->
+          <aside class="dz-panel dz-insp">
+            <div id="inspectorTitle" class="dz-ihead"></div>
+            <div id="controls" class="dz-secs"></div>
+          </aside>
+        </div>
+      </div>
+      <div id="ctxMenu" class="dz-ctx" hidden></div>
+    </section>
+
+    <!-- ============ PROS ============ -->
+    <section id="tab-pros" class="tab">
+      <div class="pros-top card">
+        <div class="stack">
+          <h3>Import a CS2 crosshair code</h3>
+          <div class="btns">
+            <input id="csCode" type="text" placeholder="CSxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" spellcheck="false">
+            <button id="csImportBtn" class="primary">Import</button>
+          </div>
+          <h3 class="exp-h">Export your crosshair</h3>
+          <div class="btns">
+            <button id="csExportCode">Copy CS2 code</button>
+            <button id="csExportCmd">Copy console commands</button>
+          </div>
+          <div class="muted small">Works for a single plain cross layer (the code format cannot hold images, text, drawings or multiple layers). Test it in game: use <code>apply_crosshair_code</code>.</div>
+        </div>
+        <div class="pros-opts">
+          <label>Game screen height
+            <input id="proHeight" type="number" min="480" max="4320" step="1" value="1080">
+          </label>
+          <label>Size calibration
+            <input id="proScale" type="range" min="0.5" max="2" step="0.05" value="1">
+            <output id="proScaleOut">1.00&times;</output>
+          </label>
+        </div>
+      </div>
+      <div class="pros-search">
+        <input id="proSearch" type="text" placeholder="Search players&hellip;" spellcheck="false">
+        <span id="proCount" class="muted small"></span>
+      </div>
+      <div id="proGrid" class="pro-grid"></div>
+      <p class="muted small">Codes come from public pro-crosshair lists (csdb.gg, wecoach.gg). Pros change crosshairs often, so these may be out of date. Sizes are converted from CS2 units to pixels using your game&rsquo;s screen height; if a crosshair looks too big or small next to CS2, nudge the calibration slider.</p>
+    </section>
+
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="tab-settings" class="tab">
+      <div class="card narrow">
+        <h3>Appearance</h3>
+        <div class="row"><span class="name">App accent color</span><span class="ctl"><span id="accentSwatches" class="accent-swatches"></span><input type="color" id="accentPick" title="Custom color"></span></div>
+        <div class="btns"><button id="accentReset">Reset to EZGG yellow</button></div>
+      </div>
+      <div class="card narrow">
+        <h3>Overlay</h3>
+        <div class="row"><span class="name">Show crosshair overlay</span><span class="ctl"><input type="checkbox" id="overlayToggle"></span></div>
+        <div class="row"><span class="name">Hide from recordings and streams</span><span class="ctl"><input type="checkbox" id="hideCapture"></span></div>
+        <p class="muted small">Keeps the crosshair out of OBS, Discord screen share, clips and screenshots. You still see it. Leave it off if you want viewers to see it.</p>
+        <div id="scaleHost"></div>
+        <div id="opacityHost"></div>
+        <div class="row"><span class="name">Display</span><span class="ctl"><select id="displaySel"></select></span></div>
+        <p id="hookWarn" class="warn" hidden>The global input hook could not be loaded, so click and WASD animations won't trigger over games. Run <code>npm install</code> again, or set Animation to None.</p>
+      </div>
+      <div class="card narrow">
+        <h3>Hotkeys</h3>
+        <p class="muted small">Work anywhere, even mid-match. Click a button, then press the keys. Backspace clears, Esc cancels.</p>
+        <div class="row"><span class="name">Show / hide crosshair</span><span class="ctl"><button id="hotkeyBtn" class="hk" data-which="toggle"></button></span></div>
+        <div class="row"><span class="name">Next saved crosshair</span><span class="ctl"><button id="hotkeyNextBtn" class="hk" data-which="next"></button></span></div>
+        <div class="row"><span class="name">Previous saved crosshair</span><span class="ctl"><button id="hotkeyPrevBtn" class="hk" data-which="prev"></button></span></div>
+        <h4 class="subhead">Saved crosshair hotkeys</h4>
+        <div id="profHkList" class="hk-list"></div>
+      </div>
+      <div class="card narrow">
+        <h3>Startup</h3>
+        <div class="row"><span class="name">Start with Windows</span><span class="ctl"><input type="checkbox" id="autoStart"></span></div>
+        <div class="row"><span class="name">Start minimized to the tray</span><span class="ctl"><input type="checkbox" id="startHidden"></span></div>
+        <div class="row"><span class="name">Only show the crosshair while a game is in front</span><span class="ctl"><input type="checkbox" id="gameOnly"></span></div>
+        <p id="autoStartNote" class="muted small"></p>
+        <p id="gameOnlyNote" class="muted small"></p>
+      </div>
+      <div class="card narrow">
+        <h3>Alignment</h3>
+        <p class="muted small">The overlay is centred on the exact middle pixel of your display, even on 125% / 150% scaling and multiple monitors. If your game window is offset (windowed mode, custom resolution), nudge it here.</p>
+        <div id="offXHost"></div>
+        <div id="offYHost"></div>
+        <div class="btns">
+          <button id="guideBtn">Show alignment guide (15 s)</button>
+          <button id="offReset">Reset offset</button>
+        </div>
+        <p class="muted small" id="alignDiag">&nbsp;</p>
+      </div>
+      <div class="card narrow">
+        <h3>Games</h3>
+        <p class="muted small">Add the games you play. Pick a saved crosshair to switch to it automatically when that game is in front, or <b>Keep current crosshair</b> if you only want the game listed (for &ldquo;Only show while a game is in front&rdquo;). Windows only.</p>
+        <div class="row"><span class="name">Switch crosshair automatically</span><span class="ctl"><input type="checkbox" id="autoSwitch"></span></div>
+        <div class="row"><span class="name">Go back to my crosshair when I leave the game</span><span class="ctl"><input type="checkbox" id="autoRevert"></span></div>
+        <div class="row"><span class="name">Centre on the game window (windowed games)</span><span class="ctl"><input type="checkbox" id="followWindow"></span></div>
+        <div id="gameList" class="game-list"></div>
+        <div class="btns">
+          <input id="gameExe" type="text" placeholder="Process name, e.g. cs2" spellcheck="false">
+          <select id="gameProf"></select>
+          <button id="gameAdd" class="primary">Add</button>
+        </div>
+        <div class="btns">
+          <button id="gamePick">Pick from running apps&hellip;</button>
+          <select id="gamePickSel" hidden></select>
+        </div>
+        <p class="muted small" id="gameNote"></p>
+      </div>
+      <div class="card narrow">
+        <h3>Performance</h3>
+        <div class="row"><span class="name">Animation frame cap</span><span class="ctl"><select id="fpsSel">
+          <option value="30">30 FPS</option>
+          <option value="60">60 FPS (recommended)</option>
+          <option value="120">120 FPS</option>
+          <option value="0">Match display</option>
+        </select></span></div>
+        <div class="row"><span class="name">Memory use</span><span class="ctl"><select id="memSel">
+          <option value="balanced">Balanced</option>
+          <option value="low">Low (recommended)</option>
+          <option value="lowest">Lowest (software drawing)</option>
+        </select></span></div>
+        <p class="muted small" id="memNote"></p>
+        <div class="btns"><button id="memRestart" hidden>Restart to apply</button></div>
+        <div class="row"><span class="name">Low CPU priority</span><span class="ctl"><input type="checkbox" id="lowPriority"></span></div>
+        <div id="perfBox" class="perf">
+          <div class="perf-cell"><b id="perfCpu">&ndash;</b><span>CPU while playing</span></div>
+          <div class="perf-cell"><b id="perfMem">&ndash;</b><span>Memory</span></div>
+          <div class="perf-cell"><b id="perfWin">&ndash;</b><span>Overlay window</span></div>
+          <div class="perf-cell"><b id="perfHook">&ndash;</b><span>Input hook</span></div>
+        </div>
+        <p class="muted small" id="perfNote">Live numbers exclude this editor window. Close the editor (the overlay keeps running from the tray) for the smallest footprint.</p>
+        <ul class="muted small perf-list">
+          <li>The crosshair is a tiny window sized to your design, not a full-screen layer.</li>
+          <li>Nothing redraws while the crosshair is idle. Animations only render while they play.</li>
+          <li>The global input hook only runs while a layer uses an animation and the overlay is visible.</li>
+          <li>It never injects into or reads from the game, so it is safe with anti-cheat.</li>
+        </ul>
+      </div>
+      <div class="card narrow">
+        <h3>Compatibility</h3>
+        <p class="muted small">The crosshair is a separate transparent window drawn on top of everything. It always shows over <b>borderless windowed</b> and windowed games. For games set to <b>Fullscreen</b>, pick <b>Fullscreen games</b> under Display mode on the Home tab; that works as long as Windows&rsquo; fullscreen optimizations are on for the game (the default). True exclusive fullscreen can still hide it.</p>
+      </div>
+      <div class="card narrow">
+        <h3>Updates</h3>
+        <div class="row"><span class="name">Check GitHub for new versions</span><span class="ctl"><input type="checkbox" id="checkUpdates"></span></div>
+        <p class="muted small" id="updateNote"></p>
+        <div class="btns"><button id="updateInstallBtn" class="primary" hidden>Download and install</button><button id="updateCheckBtn">Check now</button><button id="updateOpenBtn">Open releases page</button></div>
+      </div>
+      <div class="card narrow">
+        <h3>Backup</h3>
+        <p class="muted small">Save your crosshair, saved crosshairs, triggers and settings to a file, or restore them on another PC.</p>
+        <div class="btns">
+          <button id="backupBtn">Export backup&hellip;</button>
+          <button id="restoreBtn">Restore backup&hellip;</button>
+        </div>
+      </div>
+      <div class="card narrow">
+        <h3>Reset</h3>
+        <div class="btns"><button id="runSetupBtn">Run the setup guide again</button><button id="resetBtn">Reset crosshair to defaults</button></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="shapeModal" class="modal" hidden>
+    <div class="modal-panel" role="dialog" aria-label="Choose a shape">
+      <div class="modal-head"><h3>Choose a shape</h3><button id="shapeClose">Close</button></div>
+      <div id="shapeGroups"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="welcome" class="wz" hidden>
+    <div class="wz-card" role="dialog" aria-modal="true" aria-labelledby="wzTitle">
+      <div class="wz-head">
+        <img src="logo-64.png" alt="">
+        <div><b id="wzTitle">Welcome to EZ Reticle</b><span id="wzStepLbl">Step 1 of 3</span></div>
+        <span class="wz-sp"></span>
+        <button id="wzSkip" type="button" class="wz-skip">Skip</button>
+      </div>
+      <div class="wz-dots"><i class="on"></i><i></i><i></i></div>
+
+      <section class="wz-step" data-step="1">
+        <h2>Which game do you play?</h2>
+        <p class="muted">We&rsquo;ll set the overlay up for it. You can add more later in Settings &rsaquo; Games.</p>
+        <div id="wzGames" class="wz-chips"></div>
+        <div class="wz-other">
+          <input id="wzExe" type="text" placeholder="Other game: process name, e.g. cs2" spellcheck="false">
+          <button id="wzPick" type="button">Pick from running apps&hellip;</button>
+          <select id="wzPickSel" hidden></select>
+        </div>
+        <h3>How do you run it?</h3>
+        <div class="wz-modes">
+          <button type="button" class="wz-mode" data-mode="fullscreen"><b>Fullscreen</b><span>Most players. The crosshair stays on top of the game.</span></button>
+          <button type="button" class="wz-mode" data-mode="borderless"><b>Windowed or borderless</b><span>Lowest overhead.</span></button>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="2" hidden>
+        <h2>Pick a crosshair</h2>
+        <p class="muted">Start from one of these, or paste a code. You can change everything in the Designer.</p>
+        <div id="wzPresets" class="wz-presets"></div>
+        <div class="wz-other">
+          <input id="wzCode" type="text" placeholder="Paste a CS2 crosshair code (CSGO-&hellip;) or an EZ Reticle code (XH1:&hellip;)" spellcheck="false">
+          <button id="wzCodeBtn" type="button">Use code</button>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="3" hidden>
+        <h2>Last bits</h2>
+        <div class="wz-row"><div><b>Show / hide hotkey</b><span>Press it any time, even mid-match.</span></div><button id="wzHotkey" type="button" class="hk"></button></div>
+        <label class="wz-row"><div><b>Only show while my game is in front</b><span>Hides the crosshair on the desktop and in other apps.</span></div><input type="checkbox" id="wzGameOnly" checked></label>
+        <label class="wz-row" id="wzAutoRow"><div><b>Start with Windows, minimized to the tray</b><span>The crosshair is ready whenever you launch your game.</span></div><input type="checkbox" id="wzAuto" checked></label>
+        <label class="wz-row"><div><b>Hide from recordings and streams</b><span>Viewers won&rsquo;t see it; you still do.</span></div><input type="checkbox" id="wzCapture"></label>
+      </section>
+
+      <div class="wz-foot">
+        <button id="wzBack" type="button">Back</button>
+        <span class="wz-sp"></span>
+        <button id="wzNext" type="button" class="primary">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/suite.js"></script>
+  <script src="crosshair.js"></script>
+  <script src="api.js"></script>
+  <script src="sharecode.js"></script>
+  <script src="pros.js"></script>
+  <script src="presets.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>

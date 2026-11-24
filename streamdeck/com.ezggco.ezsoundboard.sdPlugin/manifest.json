@@ -1,0 +1,57 @@
+{
+  "Name": "EZ Soundboard",
+  "Version": "1.0.0.0",
+  "Author": "EZGGco",
+  "Description": "Play your EZ Soundboard sounds into your mic from Stream Deck keys. Keys show the sound's name and light up while it plays.",
+  "URL": "https://github.com/TheMishez/EZ_SoundBoard",
+  "UUID": "com.ezggco.ezsoundboard",
+  "Icon": "images/plugin",
+  "Category": "EZ Soundboard",
+  "CategoryIcon": "images/category",
+  "CodePath": "plugin.html",
+  "SDKVersion": 2,
+  "OS": [{ "Platform": "windows", "MinimumVersion": "10" }],
+  "Software": { "MinimumVersion": "6.4" },
+  "Actions": [
+    {
+      "UUID": "com.ezggco.ezsoundboard.play",
+      "Name": "Play sound",
+      "Tooltip": "Plays a sound from EZ Soundboard into your mic",
+      "Icon": "images/action-play",
+      "PropertyInspectorPath": "pi.html",
+      "SupportedInMultiActions": true,
+      "States": [
+        { "Image": "images/key-play", "TitleAlignment": "bottom", "FontSize": "11", "ShowTitle": true },
+        { "Image": "images/key-playing", "TitleAlignment": "bottom", "FontSize": "11", "ShowTitle": true }
+      ]
+    },
+    {
+      "UUID": "com.ezggco.ezsoundboard.stopall",
+      "Name": "Stop all sounds",
+      "Tooltip": "Stops every sound that is playing",
+      "Icon": "images/action-stop",
+      "SupportedInMultiActions": true,
+      "States": [{ "Image": "images/key-stop", "TitleAlignment": "bottom", "FontSize": "11" }]
+    },
+    {
+      "UUID": "com.ezggco.ezsoundboard.tts",
+      "Name": "Text to speech",
+      "Tooltip": "Says your text into the mic with EZ Soundboard's voice",
+      "Icon": "images/action-tts",
+      "PropertyInspectorPath": "pi.html",
+      "SupportedInMultiActions": true,
+      "States": [{ "Image": "images/key-tts", "TitleAlignment": "bottom", "FontSize": "11" }]
+    },
+    {
+      "UUID": "com.ezggco.ezsoundboard.mic",
+      "Name": "Sounds to mic on/off",
+      "Tooltip": "Switches between sounds going into your mic and only you hearing them",
+      "Icon": "images/action-mic",
+      "SupportedInMultiActions": false,
+      "States": [
+        { "Image": "images/key-mic-on", "Title": "Mic ON", "TitleAlignment": "bottom", "FontSize": "11" },
+        { "Image": "images/key-mic-off", "Title": "Mic OFF", "TitleAlignment": "bottom", "FontSize": "11" }
+      ]
+    }
+  ]
+}

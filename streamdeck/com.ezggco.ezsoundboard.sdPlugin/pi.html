@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>EZ Soundboard</title>
+  <style>
+    html, body { margin: 0; background: #2d2d2d; color: #d8d8d8; font: 9pt "Segoe UI", system-ui, sans-serif; }
+    .wrap { padding: 8px 12px 14px 0; }
+    .row { display: flex; align-items: flex-start; min-height: 30px; margin-bottom: 6px; }
+    .row > label { flex: none; width: 96px; padding: 7px 10px 0 0; text-align: right; color: #969696; }
+    .row > .ctl { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; }
+    select, textarea, input[type=text] {
+      flex: 1; min-width: 0; background: #3d3d3d; color: #d8d8d8; border: 0; border-radius: 3px; padding: 5px 6px; font: inherit; outline: none;
+    }
+    select:focus, textarea:focus { box-shadow: 0 0 0 1px #ffd21f; }
+    textarea { min-height: 64px; resize: vertical; }
+    button { background: #3d3d3d; color: #d8d8d8; border: 0; border-radius: 3px; padding: 5px 9px; font: inherit; cursor: pointer; }
+    button:hover { background: #4a4a4a; }
+    .check { display: flex; align-items: center; gap: 6px; padding-top: 6px; }
+    .note { color: #969696; font-size: 8.5pt; line-height: 1.4; margin: 2px 0 0 96px; }
+    .warn { color: #ffb347; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="play-ui" hidden>
+      <div class="row"><label for="sound">Sound</label>
+        <div class="ctl"><select id="sound"><option value="">Loading…</option></select><button id="reload" title="Reload the list">↻</button></div>
+      </div>
+      <div class="row"><label></label><div class="ctl"><label class="check"><input type="checkbox" id="showName" checked /> Show the name on the key</label></div></div>
+    </div>
+    <div id="tts-ui" hidden>
+      <div class="row"><label for="text">Say</label><div class="ctl"><textarea id="text" maxlength="1000" placeholder="What should the voice say?"></textarea></div></div>
+      <div class="row"><label></label><div class="ctl"><label class="check"><input type="checkbox" id="showText" checked /> Show the text on the key</label></div></div>
+      <p class="note">Uses the voice, speed and volume picked in EZ Soundboard's Text to speech window.</p>
+    </div>
+    <p class="note warn" id="offline" hidden>Start EZ Soundboard to see your sounds, then click ↻.</p>
+  </div>
+  <script src="ezsb.js"></script>
+  <script>
+    'use strict';
+    /* global EZSB */
+    let ws = null;
+    let ctxUUID = '';
+    let action = '';
+    let settings = {};
+
+    const $ = (id) => document.getElementById(id);
+    const save = () => ws && ws.readyState === 1 && ws.send(JSON.stringify({ event: 'setSettings', context: ctxUUID, payload: settings }));
+
+    async function loadSounds() {
+      const sel = $('sound');
+      try {
+        const r = await EZSB.sounds();
+        $('offline').hidden = true;
+        const groups = new Map();
+        for (const s of r.sounds) {
+          const g = s.board || 'No board';
+          if (!groups.has(g)) groups.set(g, []);
+          groups.get(g).push(s);
+        }
+        sel.innerHTML = '<option value="">Pick a sound…</option>';
+        for (const [g, list] of [...groups].sort((a, b) => a[0].localeCompare(b[0]))) {
+          const og = document.createElement('optgroup');
+          og.label = g;
+          for (const s of list.sort((a, b) => a.name.localeCompare(b.name))) {
+            const o = document.createElement('option');
+            o.value = s.id;
+            o.textContent = s.name;
+            og.appendChild(o);
+          }
+          sel.appendChild(og);
+        }
+        if (settings.soundId && !r.sounds.some((s) => s.id === settings.soundId) && settings.soundName) {
+          const o = document.createElement('option');
+          o.value = settings.soundId;
+          o.textContent = settings.soundName + ' (not found)';
+          sel.appendChild(o);
+        }
+        sel.value = settings.soundId || '';
+      } catch {
+        $('offline').hidden = false;
+        sel.innerHTML = settings.soundId
+          ? '<option value="' + String(settings.soundId).replace(/"/g, '') + '"></option>'
+          : '<option value="">EZ Soundboard isn\'t running</option>';
+        if (settings.soundId) sel.firstChild.textContent = settings.soundName || 'Saved sound';
+      }
+    }
+
+    function start() {
+      if (action.endsWith('.play')) {
+        $('play-ui').hidden = false;
+        $('showName').checked = settings.showName !== false;
+        loadSounds();
+        $('sound').onchange = () => {
+          const o = $('sound').selectedOptions[0];
+          settings.soundId = $('sound').value;
+          settings.soundName = settings.soundId ? o.textContent.replace(/ \(not found\)$/, '') : '';
+          save();
+        };
+        $('showName').onchange = () => { settings.showName = $('showName').checked; save(); };
+        $('reload').onclick = loadSounds;
+      } else if (action.endsWith('.tts')) {
+        $('tts-ui').hidden = false;
+        $('text').value = settings.text || '';
+        $('showText').checked = settings.showText !== false;
+        let t = null;
+        $('text').oninput = () => { clearTimeout(t); t = setTimeout(() => { settings.text = $('text').value.trim(); save(); }, 300); };
+        $('showText').onchange = () => { settings.showText = $('showText').checked; save(); };
+      }
+    }
+
+    // Called by the Stream Deck app when this panel opens.
+    window.connectElgatoStreamDeckSocket = function (port, uuid, registerEvent, info, actionInfo) {
+      ctxUUID = uuid;
+      try {
+        const a = JSON.parse(actionInfo);
+        action = a.action || '';
+        settings = (a.payload && a.payload.settings) || {};
+      } catch { /* empty */ }
+      ws = new WebSocket('ws://127.0.0.1:' + port);
+      ws.onopen = () => ws.send(JSON.stringify({ event: registerEvent, uuid }));
+      start();
+    };
+  </script>
+</body>
+</html>

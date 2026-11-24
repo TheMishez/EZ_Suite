@@ -1,0 +1,29 @@
+/* EZ Suite app bar: shared by the soundboard and the crosshair designer. */
+.ez-tabs { display: flex; gap: 4px; margin: 0 10px; align-self: center; }
+.ez-tab {
+  display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px;
+  border-radius: 8px; border: 1px solid transparent; background: transparent; color: #9a9ca4;
+  font: 600 12px/1 "Segoe UI", system-ui, sans-serif; letter-spacing: .3px; cursor: pointer;
+}
+.ez-tab svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }
+.ez-tab:hover { color: #eee; background: rgba(255, 255, 255, .05); }
+.ez-tab.on { color: #0b0b0b; background: var(--accent, #ffd21f); }
+
+/* The crosshair page gets its own bar (the soundboard reuses its title bar). */
+.ez-bar {
+  grid-column: 1 / -1; height: 40px; display: flex; align-items: center; gap: 4px;
+  padding-left: 14px; background: #0a0a0a; border-bottom: 1px solid #222; user-select: none;
+}
+.ez-brand { display: flex; align-items: center; gap: 9px; color: var(--accent, #fcc800); font: 800 13px/1 "Segoe UI", system-ui, sans-serif; letter-spacing: 1.4px; }
+.ez-brand span { color: #eee; }
+.ez-mark { width: 30px; height: 17px; }
+.ez-flex { flex: 1; align-self: stretch; }
+.ez-win { display: flex; align-self: stretch; }
+.ez-win button { width: 46px; border: 0; background: transparent; color: #aaa; cursor: pointer; }
+.ez-win button svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.2; }
+.ez-win button:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.ez-win button.close:hover { background: #e81123; color: #fff; }
+
+/* Crosshair designer layout under the bar */
+body.ez-page-crosshair { grid-template-rows: 40px 1fr; height: 100vh; overflow: hidden; }
+body.ez-page-crosshair .side, body.ez-page-crosshair main { height: calc(100vh - 40px); }

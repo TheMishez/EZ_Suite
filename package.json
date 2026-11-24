@@ -1,0 +1,18 @@
+{
+  "name": "ez-suite",
+  "private": true,
+  "version": "2.0.0",
+  "description": "EZ Soundboard + EZ Reticle in one lightweight app (Tauri + Rust)",
+  "author": "EZGGco",
+  "license": "MIT",
+  "scripts": {
+    "native": "cmake -S native -B native/build -A x64 && cmake --build native/build --config Release",
+    "streamdeck": "node tools/pack-streamdeck.js",
+    "dev": "tauri dev",
+    "build": "npm run native && npm run streamdeck && tauri build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

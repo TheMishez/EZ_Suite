@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "EZ Suite",
+  "version": "2.0.0",
+  "identifier": "com.ezggco.ezsuite",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; font-src 'self' data:; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "EZGGco",
+    "shortDescription": "Soundboard + crosshair overlay with almost no PC impact",
+    "icon": ["icons/icon.png", "icons/icon.ico"],
+    "resources": {
+      "../native/bin/EZSoundboardApo.dll": "driver/EZSoundboardApo.dll",
+      "../native/bin/ezsb-mic-setup.exe": "driver/ezsb-mic-setup.exe",
+      "../assets/starter-sounds/": "starter-sounds/",
+      "../build/streamdeck/EZ-Soundboard.streamDeckPlugin": "streamdeck/EZ-Soundboard.streamDeckPlugin"
+    },
+    "windows": {
+      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
+      "nsis": {
+        "installMode": "perMachine",
+        "installerHooks": "./nsis/hooks.nsh",
+        "installerIcon": "icons/icon.ico"
+      }
+    }
+  }
+}

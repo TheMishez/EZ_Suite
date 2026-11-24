@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-page="soundboard">
+<head>
+  <meta charset="UTF-8" />
+  <title>EZ Suite · Soundboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="../shared/suite.css" />
+</head>
+<body>
+  <header id="titlebar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="24 58 222 124"><g fill="#FFD21F" color="#FFD21F" transform="translate(120 120) skewX(-11) translate(-120 -120)"><rect x="40" y="65" width="22" height="110"/><rect x="40" y="65" width="70" height="22"/><rect x="40" y="109" width="54" height="22"/><rect x="40" y="153" width="70" height="22"/><rect x="122" y="65" width="78" height="22"/><rect x="122" y="153" width="78" height="22"/><polyline points="192,87 170,104 181,113 151,131 162,140 132,153" fill="none" stroke="currentColor" stroke-width="15" stroke-linejoin="miter" stroke-miterlimit="10"/></g><g fill="none" stroke="#FFD21F" stroke-linecap="round" opacity=".7"><path d="M206 98 q14 22 0 44" stroke-width="7"/><path d="M219 86 q24 34 0 68" stroke-width="6" opacity=".6"/></g></svg>
+      <div class="brand-name">SOUNDBOARD</div>
+    </div>
+    <button id="route-pill" class="route-pill no-drag" title="Audio routing"></button>
+    <button id="update-pill" class="update-pill no-drag" hidden></button>
+    <div class="flex"></div>
+    <div class="win-btns no-drag">
+      <button id="win-min" title="Minimize"><svg viewBox="0 0 12 12"><path d="M2 6h8"/></svg></button>
+      <button id="win-max" title="Maximize"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" rx="1"/></svg></button>
+      <button id="win-close" class="close" title="Close to tray"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></button>
+    </div>
+  </header>
+
+  <div id="shell">
+    <aside id="sidebar">
+      <nav id="nav"></nav>
+      <div class="side-head">
+        <span>Boards</span>
+        <button id="add-cat" class="icon-btn sm" title="New board"></button>
+      </div>
+      <div id="cats"></div>
+      <div class="flex"></div>
+      <section id="mixer"></section>
+    </aside>
+
+    <main id="main">
+      <div id="toolbar">
+        <label class="search">
+          <span class="ico" data-icon="search"></span>
+          <input id="search" placeholder="Search sounds…  (Ctrl+F)" spellcheck="false" />
+        </label>
+        <div class="seg" id="mode-seg" title="What happens when you trigger a sound"></div>
+        <div class="flex"></div>
+        <div class="seg small icons" id="layout-seg"></div>
+        <div class="seg small" id="size-seg"></div>
+        <select id="sort" class="select" title="Sort">
+          <option value="manual">Added</option>
+          <option value="name">Name</option>
+          <option value="plays">Most played</option>
+          <option value="duration">Length</option>
+        </select>
+        <button id="tts-btn" class="icon-btn" title="Text to speech"></button>
+        <button id="import-btn" class="btn primary"><span data-icon="plus"></span><span class="lbl">Add sounds</span></button>
+        <button id="settings-btn" class="icon-btn" title="Settings"></button>
+      </div>
+      <div id="board-head"></div>
+      <div id="grid-wrap">
+        <div id="grid"></div>
+        <div id="empty" hidden></div>
+      </div>
+      <footer id="nowbar"></footer>
+    </main>
+
+    <aside id="inspector" aria-hidden="true"></aside>
+  </div>
+
+  <div id="drop-overlay"><div><span data-icon="wave"></span><h2>Drop to add sounds</h2><p>mp3 · wav · ogg · flac · m4a · opus · folders</p></div></div>
+  <div id="menu" hidden></div>
+  <div id="modal-root"></div>
+  <div id="toasts"></div>
+
+  <script src="../shared/suite.js"></script>
+  <script src="js/keys.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/extras.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

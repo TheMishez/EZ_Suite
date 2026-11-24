@@ -1,0 +1,74 @@
+name: Build EZ Suite
+
+# - Every push to main (and pull requests): builds the installer; grab it from the run's Artifacts.
+# - Publishing a GitHub release tagged vX.Y.Z: builds and attaches the installer to the release.
+#   Installed copies of EZ Suite see it and offer the update in the app.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the release tag matches the app version
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $v = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $tag = $env:TAG.TrimStart('v')
+          if ($tag -ne $v) {
+            Write-Error "Release tag is $tag but src-tauri/tauri.conf.json says $v. Bump the version there (and in src-tauri/Cargo.toml) so the in-app updater sees the right version."
+            exit 1
+          }
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build mic plugin (C++)
+        run: |
+          cmake -S native -B native/build -A x64
+          cmake --build native/build --config Release
+
+      - name: Pack Stream Deck plugin
+        run: node tools/pack-streamdeck.js
+
+      - name: Install Tauri CLI
+        run: npm install
+
+      - name: Build EZ Suite
+        run: npx tauri build
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: EZ-Suite-Setup
+          path: src-tauri/target/release/bundle/nsis/*.exe
+
+      - name: Attach installer to the release
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          $f = Get-ChildItem src-tauri/target/release/bundle/nsis/*-setup.exe | Select-Object -First 1
+          gh release upload $env:TAG "$($f.FullName)" --clobber
